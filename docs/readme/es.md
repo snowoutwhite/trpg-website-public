@@ -4,7 +4,7 @@
 
 Un sitio autohospedado para comunidades de juegos de rol de mesa (TRPG). Reúne convocatorias, inscripciones, fichas, valoraciones y registros de partidas, con funciones diferenciadas para la administración, la dirección de juego y los jugadores.
 
-> Los seis idiomas corresponden a la documentación. La aplicación está principalmente en chino.
+> Este proyecto está pensado para comunidades de rol de al menos cinco personas. La personalización de etiquetas también permite usarlo para organizar grupos en tiendas de juegos de mesa y otros entornos similares.
 
 ## Funciones principales
 

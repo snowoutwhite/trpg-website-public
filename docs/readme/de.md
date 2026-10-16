@@ -4,7 +4,7 @@
 
 Eine selbst gehostete Website für Pen-&-Paper-Rollenspielgemeinschaften (TRPG). Sie verbindet Ausschreibungen, Anmeldungen, Charakterbögen, Bewertungen und Spielberichte mit getrennten Rollen für Administration, Spielleitung und Spieler.
 
-> Die sechs Sprachen betreffen die Dokumentation. Die Anwendung ist überwiegend auf Chinesisch.
+> Dieses Projekt richtet sich an Rollenspielgruppen mit mindestens fünf Personen. Mit anpassbaren Tags eignet es sich auch zur Organisation von Spielrunden in Brettspielläden und ähnlichen Einrichtungen.
 
 ## Funktionen
 

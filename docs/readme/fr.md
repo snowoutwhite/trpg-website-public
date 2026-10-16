@@ -4,7 +4,7 @@
 
 Un site auto-hébergé pour les communautés de jeux de rôle sur table (TRPG). Il rassemble recrutement, inscriptions, fiches, évaluations et comptes rendus, avec des rôles distincts pour l’administration, les MJ et les joueurs.
 
-> Les six langues concernent la documentation. L’application est principalement en chinois.
+> Ce projet s’adresse aux communautés de jeux de rôle d’au moins cinq personnes. Les étiquettes personnalisables permettent aussi d’organiser des groupes dans des boutiques de jeux de société et des contextes similaires.
 
 ## Fonctionnalités
 

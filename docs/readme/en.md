@@ -4,7 +4,7 @@
 
 A self-hosted website for tabletop role-playing (TRPG) communities. It connects game recruitment, sign-ups, character sheets, post-game reviews, and activity records in one system, with separate responsibilities for the site administrator, game masters, and players.
 
-> The six languages apply to project documentation. The application interface is currently mainly Chinese.
+> This project is intended for TRPG communities of at least five people. Its customizable tags also make it suitable for organizing groups at board game shops and similar settings.
 
 ## Features
 

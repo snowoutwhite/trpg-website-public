@@ -4,7 +4,7 @@
 
 Un sito autogestito per comunità di giochi di ruolo da tavolo (TRPG). Riunisce reclutamento, iscrizioni, schede, valutazioni e resoconti, con ruoli distinti per amministratore, GM e giocatori.
 
-> Le sei lingue riguardano la documentazione. L’interfaccia applicativa è prevalentemente in cinese.
+> Questo progetto è pensato per comunità di giochi di ruolo di almeno cinque persone. Le etichette personalizzabili lo rendono adatto anche a organizzare gruppi nei negozi di giochi da tavolo e in contesti simili.
 
 ## Funzionalità
 
