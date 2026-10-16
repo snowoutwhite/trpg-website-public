@@ -1,0 +1,915 @@
+@import "./tokens.css";
+
+/* ===================================================================
+   全局基础样式 —— v2 方向（浅底墨绿 · 无衬线 · 玻璃与虚化铺底）
+
+
+
+   纪律：
+   - **移动优先**：本文件只允许 `@media (min-width: …)`，断点 768 / 1200（更宽的
+     1921 / 2251 只管首页横轨与宽屏留白，不在本文件出现）。`(pointer: coarse)`
+     不是宽度查询，用于触控目标放大，允许。
+   - 颜色/字号/间距/圆角/阴影一律 `var()`，字面值只许出现在 `tokens.css`。
+   - 旧方向的 `body::before` 纸纹层已删除；铺底机制换成 `.c-blur-stage`（同图虚化）。
+   =================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: var(--ink);
+  font: 400 var(--fs-base) / var(--lh-body) var(--font-sans);
+  letter-spacing: var(--ls-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* v2 口径：链接默认继承上下文颜色（大量链接压在深色图 / 玻璃顶栏上，
+   写死品牌色会在那些语境里瞎掉）。要「看起来像链接」用 .c-textlink。 */
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ===================================================================
+   排版：无衬线唯一栈，标题细字重 + 负字距（v2 的反转点）
+   =================================================================== */
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 400;
+  line-height: var(--lh-tight);
+}
+
+h1 {
+  font-size: var(--fs-h-display);
+  letter-spacing: var(--ls-display);
+}
+
+h2 {
+  font-size: var(--fs-h-section);
+  letter-spacing: var(--ls-section);
+}
+
+h3 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-card);
+}
+
+h4 {
+  font-size: var(--fs-base);
+}
+
+p {
+  margin: 0 0 var(--sp-4);
+}
+
+/* ---- 文字层级工具类（v2 .kicker / .h-display / .h-section / .h-card / .lead / .small） ---- */
+
+.u-kicker {
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-kicker);
+  color: var(--kicker);
+  text-transform: uppercase;
+}
+
+.u-h-display {
+  font-size: var(--fs-h-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-display);
+}
+
+.u-h-section {
+  font-size: var(--fs-h-section);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-section);
+}
+
+.u-h-card {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-card);
+}
+
+.u-lead {
+  font-size: var(--fs-md);
+  line-height: var(--lh-read);
+  color: var(--ink-muted);
+}
+
+.u-small {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  letter-spacing: var(--ls-caps-sm);
+}
+
+.u-muted {
+  color: var(--ink-muted);
+}
+
+.u-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 行内链接的触控补偿：可点元素最小 40px 高 */
+.c-meta a,
+.c-note a,
+.u-tap {
+  display: inline-block;
+  min-height: 40px;
+  padding: var(--sp-2) 0;
+  line-height: 24px;
+}
+
+/* ===================================================================
+   布局：外壳、版心、分区
+   =================================================================== */
+
+.l-main {
+  flex: 1 1 auto;
+  width: 100%;
+  padding: var(--sp-5) var(--pad) calc(var(--bottom-nav-h) + var(--safe-bottom) + var(--sp-6));
+}
+
+@media (min-width: 768px) {
+  .l-main {
+    /* ≥768px 底部导航隐藏，不再预留它的高度 */
+    padding: var(--sp-7) var(--pad) var(--sp-8);
+  }
+}
+
+/* 通栏主体：左右留白与顶部留白交给页面自己的 `.l-section`，主体只保留底部那段
+   「让开手机底栏」的预留。给首页这种「首屏满幅图 + 整段换底色」的版式用，
+   由 `route.meta.flush` 在 `App.vue` 里挂上（见 `src/types/router-meta.d.ts`）。
+   顶部留白必须一起去掉：首屏要贴着 sticky 顶栏往上钻（`.hero` 的负 margin-top），
+   主体还留着 padding-top 的话首屏与顶栏之间会裂开一条底色缝。 */
+.l-main--flush {
+  padding-top: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+/* 通栏分区：自己管左右留白，用于首页那种整段换底色的版式 */
+.l-section {
+  padding: var(--sec-y) var(--pad);
+  scroll-margin-top: calc(var(--header-h) + var(--sp-3));
+}
+
+.l-section--tight {
+  padding-top: var(--sec-y-tight);
+  padding-bottom: var(--sec-y-tight);
+}
+
+.l-section--tone-2 {
+  background: var(--bg-2);
+}
+
+.l-section--tone-3 {
+  background: var(--bg-3);
+}
+
+@media (min-width: 768px) {
+  .l-section {
+    padding-top: var(--sec-y-lg);
+    padding-bottom: var(--sec-y-lg);
+  }
+}
+
+/* 长文单栏（战报正文 800px 净宽） */
+.l-narrow {
+  max-width: var(--max-narrow);
+  margin: 0 auto;
+}
+
+/* ===================================================================
+   卡片基础：白面 + 细线 + 6px 圆角（v2 全站卡面的共同底）
+   =================================================================== */
+
+.c-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+}
+
+.c-card--raised {
+  border-color: transparent;
+  box-shadow: var(--shadow-1);
+}
+
+/* 内容承载面（旧「纸」容器，现在就是一张白卡；e2e 脚本仍按这个类名取元素） */
+.c-sheet {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-5) var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .c-sheet {
+    padding: var(--sp-6) var(--sp-7);
+  }
+}
+
+.c-sheet--narrow {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .c-sheet--narrow {
+    margin-top: clamp(0px, 5vh, 56px);
+  }
+}
+
+/* 同图虚化铺底（v2 视觉核心机制）：底图放大模糊铺满 + 一层渐变遮罩。
+   配合 `src/lib/rule-art.ts` 的 .art-* 类提供 --art。 */
+.c-blur-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--stage-bg);
+}
+
+.c-blur-stage::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: -2;
+  background: var(--art) center / cover no-repeat;
+  filter: blur(28px) saturate(115%);
+  transform: scale(1.1);
+}
+
+.c-blur-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, var(--scrim-1), var(--scrim-2));
+}
+
+.c-blur-stage--light::after {
+  background: linear-gradient(180deg, var(--scrim-light-1), var(--scrim-light-2));
+}
+
+/* 规则美术：每个规则系统一张站主选定的底图，只负责提供 --art。
+   类名与文件由 `src/lib/rule-art.ts` 统一映射（含 art-default 兜底，
+   因为后端 rule_system 是自由文本）。素材在 `public/rule-art/`。
+   **过渡态**：的站长内容接口上线后，这一节由接口下发的图片地址取代。 */
+.art-dnd {
+  --art: url("/rule-art/castle.svg");
+}
+.art-coc {
+  --art: url("/rule-art/red-dice.svg");
+}
+.art-triangle {
+  --art: url("/rule-art/game-chip.svg");
+}
+.art-fu {
+  --art: url("/rule-art/sailboat.svg");
+}
+.art-camp {
+  --art: url("/rule-art/village.svg");
+}
+.art-portrait {
+  --art: url("/rule-art/player-pawn.svg");
+}
+.art-overview {
+  --art: url("/rule-art/white-dice.svg");
+}
+.art-books {
+  --art: url("/rule-art/playing-card.svg");
+}
+.art-default {
+  --art: url("/rule-art/village.svg");
+}
+
+/* ===================================================================
+   按钮与文字链（v2 .btn / .btn.ghost / .btn.light / .textlink）
+   =================================================================== */
+
+.c-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding: 13px 21px;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-caps-sm);
+  color: var(--on-brand);
+  background: var(--brand);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.c-btn:hover:not(:disabled) {
+  background: var(--brand-2);
+}
+
+.c-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.c-btn--block {
+  width: 100%;
+}
+
+/* 次要按钮：透明底 + 线框（v2 .btn.ghost） */
+.c-btn--ghost {
+  color: var(--brand-ink);
+  background: transparent;
+  border-color: var(--line-2);
+}
+
+.c-btn--ghost:hover:not(:disabled) {
+  background: var(--white);
+}
+
+/* 压在深色图上的按钮（v2 .btn.light） */
+.c-btn--light {
+  color: var(--on-dark);
+  background: transparent;
+  border-color: var(--glass-line);
+}
+
+.c-btn--light:hover:not(:disabled) {
+  background: var(--glass-fill);
+}
+
+/* 破坏性动作：撕卡、注销这类，与主按钮明确区分 */
+.c-btn--danger {
+  color: var(--danger);
+  background: var(--white);
+  border-color: var(--danger-line);
+}
+
+.c-btn--danger:hover:not(:disabled) {
+  color: var(--white);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* 文字型按钮（v2 .textlink） */
+.c-btn--text,
+.c-textlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 12px 0;
+  font-size: var(--fs-sm);
+  letter-spacing: 0;
+  color: var(--brand-ink);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+.c-btn--text:hover:not(:disabled),
+.c-textlink:hover {
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.c-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-5);
+  margin-top: var(--sp-5);
+}
+
+/* ===================================================================
+   筛选钮 chip / 状态徽标 pill / 标记 tag
+   =================================================================== */
+
+.c-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.c-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 13px;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-caps);
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.c-chip:hover {
+  background: var(--white);
+}
+
+.c-chip[aria-pressed="true"],
+.c-chip.is-active {
+  color: var(--on-brand);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+/* 禁用档 */
+.c-chip:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.c-chip:disabled:hover {
+  background: transparent;
+}
+
+@media (pointer: coarse) {
+  .c-chip {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+}
+
+/* 小徽标：状态、档位、计数（v2 me.html / game.html 的 .pill） */
+.c-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  background: var(--white);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-pill);
+}
+
+.c-pill--ok {
+  color: var(--ok);
+  border-color: var(--ok-line);
+}
+
+.c-pill--warn {
+  color: var(--warn);
+  border-color: var(--warn-line);
+}
+
+.c-pill--danger {
+  color: var(--danger);
+  border-color: var(--danger-line);
+}
+
+/* 实底红：已逾期 / 已失败 / 未读角标那一档（v2 style.css .badge） */
+.c-pill--strong {
+  color: var(--on-brand);
+  background: var(--danger-strong);
+  border-color: transparent;
+}
+
+/* 灰：已关闭 / 停用 / 已结束（v2 .status.finished 的 --muted-2 档） */
+.c-pill--off {
+  color: var(--ink-faint);
+  background: transparent;
+  border-color: var(--line);
+}
+
+/* 方标记：规则名、身份（v2 .tag） */
+.c-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-caps);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  background: var(--bg-2);
+  border-radius: var(--radius);
+}
+
+.c-tag--gm {
+  color: var(--ok);
+  background: var(--ok-wash);
+}
+
+.c-tag--seal {
+  color: var(--brand-ink);
+  background: var(--brand-wash);
+}
+
+.c-tag--mute {
+  color: var(--ink-faint);
+  background: transparent;
+  border: 1px dashed var(--line-2);
+}
+
+/* 压在深色图上的标记（v2 .tag.dark） */
+.c-tag--dark {
+  color: var(--on-dark);
+  background: var(--veil-tag);
+}
+
+/* ===================================================================
+   表单（v2 .field：实线框 + 11px 字段名 + 44px 触控高）
+   =================================================================== */
+
+.c-field {
+  display: grid;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-4);
+}
+
+.c-field__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.c-field__no {
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-caps);
+  color: var(--kicker);
+}
+
+.c-field__label {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--ink-muted);
+}
+
+.c-field__hint {
+  margin: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+
+.c-field__error {
+  margin: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.8;
+  color: var(--danger);
+}
+
+.c-input,
+.c-textarea,
+.c-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  appearance: none;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.c-textarea {
+  min-height: 120px;
+  line-height: var(--lh-body);
+  resize: vertical;
+}
+
+.c-select {
+  appearance: auto;
+}
+
+.c-input::placeholder,
+.c-textarea::placeholder {
+  color: var(--ink-faint);
+}
+
+.c-input:focus,
+.c-textarea:focus,
+.c-select:focus {
+  outline: none;
+  border-color: var(--brand-ink);
+  box-shadow: inset 0 0 0 1px var(--brand-ink);
+}
+
+.c-input[aria-invalid="true"],
+.c-textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.c-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: 44px;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.c-check input[type="checkbox"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+
+/* 表单底部的次要链接行 */
+.c-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-2);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  font-size: var(--fs-md);
+  color: var(--ink-muted);
+  border-top: 1px solid var(--line);
+}
+
+.c-foot a {
+  display: inline-block;
+  min-height: 40px;
+  padding: var(--sp-2) 0;
+  line-height: 24px;
+  color: var(--brand-ink);
+}
+
+.c-foot .sep {
+  color: var(--ink-faint);
+}
+
+/* ===================================================================
+   提示条 notice（v2 .notice / .note.boxed：左边框 + 浅底盒两形态）
+   =================================================================== */
+
+.c-note {
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-md);
+  line-height: 1.8;
+  color: var(--ink-soft);
+  background: var(--bg-2);
+  border-left: 2px solid var(--line-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.c-note--ok {
+  color: var(--ok);
+  background: var(--ok-wash);
+  border-left-color: var(--ok);
+}
+
+.c-note--warn {
+  color: var(--warn);
+  background: var(--warn-wash);
+  border-left-color: var(--warn);
+}
+
+.c-note--error {
+  color: var(--danger);
+  background: var(--danger-wash);
+  border-left-color: var(--danger);
+}
+
+/* ===================================================================
+   条目列表与小节（业务页共用的骨架）
+   =================================================================== */
+
+.c-entry {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-4) 0;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: background-color var(--dur) var(--ease);
+}
+
+.c-entry:first-child {
+  border-top: 1px solid var(--line);
+}
+
+a.c-entry:hover {
+  background: var(--white);
+}
+
+.c-entry__no {
+  flex: none;
+  width: 2.4em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-caps);
+  color: var(--kicker);
+}
+
+.c-entry__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.c-entry__title {
+  display: block;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-card);
+}
+
+.c-entry__desc {
+  display: block;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.c-entry__arrow {
+  flex: none;
+  align-self: center;
+  color: var(--ink-faint);
+}
+
+a.c-entry:hover .c-entry__arrow {
+  color: var(--brand-ink);
+}
+
+/* 元信息行：次数、时间、分类这类小字 */
+.c-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-3);
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-caps-sm);
+  color: var(--ink-muted);
+}
+
+.c-sec {
+  margin-top: var(--sp-6);
+}
+
+.c-sec__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.c-sec__title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-card);
+}
+
+.c-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.c-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 40px;
+  font-size: var(--fs-md);
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.c-back:hover {
+  color: var(--brand-ink);
+}
+
+.c-divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--sp-6) 0;
+}
+
+/* ===================================================================
+   入场动效：载入时一次错位淡入上移
+   =================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.u-rise {
+  animation: rise 380ms var(--ease) both;
+}
+
+.u-rise-1 {
+  animation-delay: 60ms;
+}
+
+.u-rise-2 {
+  animation-delay: 120ms;
+}
+
+.u-rise-3 {
+  animation-delay: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===================================================================
+   过渡类 —— **删除**
+   现有 view 还在用旧方向的类名，这里让它们不至于无样式。
+   新代码用上面的正式类，不要用这两个。
+   =================================================================== */
+
+/* 旧「等宽小标签」→ 现在就是 kicker */
+.u-label {
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-kicker);
+  color: var(--kicker);
+  text-transform: uppercase;
+}
+
+/* 旧「衬线」工具类：v2 全站无衬线，此处退化为无操作，保留只为不改 view */
+.u-serif {
+  font-family: var(--font-sans);
+}

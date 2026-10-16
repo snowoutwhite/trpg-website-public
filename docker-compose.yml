@@ -1,0 +1,148 @@
+# 一键起：Caddy（TLS）+ Nginx + Django/gunicorn + 定时任务 + PostgreSQL + Redis（同域部署）。
+# 用法（详见 docs/dev/deploy.md）：
+#   1. cp backend/.env.example deploy/django.env 并填好（至少 DJANGO_SECRET_KEY / DJANGO_ALLOWED_HOSTS /
+#      DJANGO_CSRF_TRUSTED_ORIGINS / DATABASE_URL / POSTGRES_* / 邮件凭据）。
+#      不用 backend/.env：那是本机 runserver / pytest 启动时自动读的文件，装进 compose 的值
+#      （DATABASE_URL 指向 postgres 容器）会把本机开发环境弄坏。
+#   2. cp .env.example .env 并填 SITE_DOMAIN（生产填域名；本机测试保持 127.0.0.1 并把端口改成 8080/8443）
+#   3. 先在本机构建前端：cd frontend && npm ci && npm run build（产物 frontend/dist）
+#   4. docker compose up -d --build
+#   5. 首次：docker compose exec django python manage.py createsuperuser
+# 请求链路：浏览器 → caddy:443（自动证书）→ nginx:80（静态/媒体直出、安全头）→ django:8000（gunicorn）。
+# 只有 caddy 发布宿主端口；nginx / django / postgres / redis 都只在 compose 内网可达。
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      # POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD 由 deploy/django.env 经 env_file 注入
+      # （不要用 ${VAR} 插值：Compose 的插值只读项目根目录的 .env，不读 env_file）
+      PGDATA: /var/lib/postgresql/data/pgdata
+    env_file:
+      - ./deploy/django.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trpg} -d ${POSTGRES_DB:-trpg}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    # 多 worker 的共享缓存。django 跑 3 个 gunicorn worker，而注册/登录限速计数与
+    # siteconfig 单例都存在 Django cache 里：用进程内 locmem 的话，限速会被放大成
+    # 3 倍，站主在后台改了开关也只有一个 worker 立刻生效（缺陷 D1）。
+    image: redis:7-alpine
+    restart: unless-stopped
+    # 纯缓存，不做持久化：省掉 RDB/AOF 落盘与 fork 失败告警。
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    # 故意不映射宿主端口：只在 compose 内部网络里被 django 访问，不暴露到公网。
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: trpg-website-django:local
+    restart: unless-stopped
+    env_file:
+      - ./deploy/django.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      MEDIA_ROOT: /app/media
+      USE_X_ACCEL_REDIRECT: "True"
+      # 指向上面的 redis 服务。Compose 里 `environment` 的优先级高于 `env_file`，
+      # 所以这一行会盖掉 deploy/django.env 里的 CACHE_URL —— 要换缓存地址请改这里。
+      CACHE_URL: redis://redis:6379/1
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60 --access-logfile - --error-logfile -"
+
+  # 定时任务：运行定时 management command，每小时跑一轮
+  # （交卡/开团提醒与自动结团、评价窗口关闭提醒、站长公告预告到点补推）。
+  # 复用 django 镜像，不重复构建；三条命令都幂等，容器重启多跑一轮也无害。
+  scheduler:
+    image: trpg-website-django:local
+    pull_policy: never
+    restart: unless-stopped
+    env_file:
+      - ./deploy/django.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      MEDIA_ROOT: /app/media
+      CACHE_URL: redis://redis:6379/1
+    volumes:
+      - media_data:/app/media
+    # 镜像自带的 HEALTHCHECK 是探 gunicorn 的，本容器没有 gunicorn，必须关掉，否则永远 unhealthy。
+    healthcheck:
+      disable: true
+    # 等 django 真正健康（migrate 已跑完、gunicorn 起来）再开跑，否则第一轮会撞上还没建的列。
+    depends_on:
+      django:
+        condition: service_healthy
+    command: >
+      sh -c "while true; do
+               python manage.py games_autoclose;
+               python manage.py reviews_window_closing;
+               python manage.py announcements_publish_due;
+               sleep 3600;
+             done"
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    # 故意不发布宿主端口：只被 caddy 访问。直接暴露 80 会让浏览器走明文，
+    # 生产配置里的 Secure Cookie 根本种不上，且 X-Forwarded-Proto 可被外部伪造。
+    expose:
+      - "80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/proxy_params_trpg:/etc/nginx/proxy_params_trpg:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - media_data:/app/media:ro
+      - static_data:/app/staticfiles:ro
+    depends_on:
+      - django
+
+  # TLS 终结与自动证书（deploy/Caddyfile）。SITE_DOMAIN / HTTP_PORT / HTTPS_PORT 来自项目根目录 .env
+  # （compose 的 ${VAR} 插值只读根目录 .env，不读 backend/.env）。
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-127.0.0.1}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:
+  # 证书与 ACME 账号：删掉它会让 Caddy 重新申请证书，Let's Encrypt 有签发频率限制，别随手清。
+  caddy_data:
+  caddy_config:

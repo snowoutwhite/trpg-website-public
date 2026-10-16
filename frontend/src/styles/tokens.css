@@ -1,0 +1,242 @@
+/* Design tokens: colors, typography, spacing, radii, shadows and motion. */
+
+:root {
+  color-scheme: light;
+
+  /* ========================================================================
+     色板 —— 底与面
+     ====================================================================== */
+  --bg: #f8f9f8;             /* 页面底（v2 --bg） */
+  --bg-2: #edf1ed;           /* 次级分区底：section.tone-2、浅提示条（v2 --bg-2） */
+  --bg-3: #eaf0ec;           /* 三级分区底、品牌淡底（v2 --bg-3） */
+  --white: #fff;             /* 卡面、输入框、弹层（v2 --white，页内 #fff 共 75 处） */
+  --dark-bg: #1d2b28;        /* 深色舞台兜底（图未载入时的 hero / auth-art，v2 #1d2b28） */
+  --stage-bg: #344b48;       /* .blur-stage / .pic-card 的底（v2 style.css #344b48） */
+  --thumb-bg: #d7e0d9;       /* 缩略图占位底（v2 .row .thumb #d7e0d9） */
+
+  /* ========================================================================
+     色板 —— 文字四档（v2 把三档改成四档，命名与旧版不同，见末尾过渡别名）
+     ====================================================================== */
+  --ink: #20312d;            /* 正文主墨（v2 --ink） */
+  --ink-soft: #365344;       /* 次级墨：小标题、表格值、链接文字（v2 --ink-2，改名避免与旧令牌撞车） */
+  --ink-muted: #5f6e66;      /* 弱化文字、说明、占位符 */
+  --ink-faint: #626c65;      /* 最弱辅助字，**只用于 10–11px** */
+  --read-ink: #26352f;       /* 长文正文墨：战报正文 / Markdown 预览（v2 #26352f） */
+
+  /* 压在深色图／玻璃上的文字（v2 各页 #fff / #cfe0d6 / #e0e8e4 / #b7cac1 收敛） */
+  --on-dark: #fff;           /* 主文字 */
+  --on-dark-kicker: #cfe0d6; /* 眼标 kicker（v2 #cfe0d6，6 处） */
+  --on-dark-2: #e0e8e4;      /* 次级文字、meta 行（v2 #e0e8e4 / #dde6e1 / #eef3f0 三值合一） */
+  --on-dark-3: #b7cac1;      /* 事实网格的键名一类最弱标签（v2 #b7cac1） */
+
+  /* ========================================================================
+     色板 —— 线
+     ====================================================================== */
+  --line: #dce3dd;           /* 常规分隔线、卡片描边（v2 --line） */
+  --line-2: #c6d2ca;         /* 强调线：输入框、chip、按钮描边（v2 --line-2） */
+  --glass-line: #ffffff66;   /* 玻璃面的高光边（v2 .site-header border-bottom） */
+  --glass-fill: #ffffff1f;   /* 深色图上的半透明填充：hover 态、浅玻璃块（v2 .btn.light:hover） */
+  --veil-tag: #102620b3;     /* 图片上的标记底 */
+
+  /* ========================================================================
+     色板 —— 品牌墨绿
+     ====================================================================== */
+  --brand: #294c3f;          /* 主色：主按钮底、选中 chip、当前项（v2 --brand） */
+  --brand-2: #203e32;        /* 按下 / hover 的更深一档（v2 --brand-2） */
+  --brand-ink: #315b49;      /* 品牌色当文字用：文字链、幽灵按钮（v2 --brand-ink） */
+  --brand-wash: var(--bg-3); /* 品牌极淡底：提示条、聚焦底 */
+  --on-brand: #fff;          /* 压在品牌底上的文字 */
+  --kicker: #5a7264;         /* 浅底上的眼标色 */
+
+  /* ========================================================================
+     色板 —— 语义状态
+     （v2 把这些散写在各页：.pill.ok/.warn/.wait、.status.<state>、.notif.unread .dot、.err）
+     ====================================================================== */
+  --ok: #3f7a53;             /* 成功 / 通过 / GM 标记（v2 me.html .pill.ok） */
+  --ok-line: #c4ddcb;        /* 成功态描边（v2 me.html .pill.ok border-color） */
+  --ok-icon: #4f8d63;        /* 勾选图标 stroke，比文字亮一档（v2 game.html .check .ok svg） */
+  --ok-wash: var(--bg-3);    /* 成功态淡底 */
+  --warn: #8a7226;           /* 等待 / 待处理（v2 me.html .pill.wait；game.html #8d6f2e 合并到此） */
+  --warn-line: #e3d7ab;      /* 等待态描边（v2 me.html .pill.wait border-color） */
+  --warn-wash: var(--bg-2);  /* 等待态淡底 */
+  --danger: #b35a4a;         /* 失败 / 逾期 / 破坏性动作（v2 me.html .danger、index.html .urgent） */
+  --danger-line: #e6c6bf;    /* 失败态描边（v2 me.html .pill.warn border-color） */
+  --danger-strong: #c9503d;  /* 未读红点、角标实底（v2 me.html .notif.unread .dot、style.css .badge） */
+  --danger-wash: var(--bg-2);/* 失败态淡底 */
+
+  /* 团状态五值（与后端 GAME_STATUS_CHOICES 一一对应，v2 style.css .status.<state>） */
+  --st-recruiting: #5f9a6b;      /* 招募中 */
+  --st-closed-signup: #c39a3a;   /* 报名已满 */
+  --st-running: #4a7fb3;         /* 进行中 */
+  --st-finished: var(--ink-faint); /* 已结团 */
+  --st-cancelled: var(--danger);   /* 已取消 */
+  --st-full: var(--st-closed-signup); /* 「满员」的可读同名，值同 closed_signup */
+
+  /* 遮罩：同图虚化铺底 .blur-stage 的两层渐变（v2 style.css） */
+  --scrim-1: #10262033;
+  --scrim-2: #10262099;
+  --scrim-3: #102620d4;         /* 83%：白字压亮色美术时的最深一档（v2 login/signup 美术栏） */
+  --scrim-light-1: #f8f9f8cc;
+  --scrim-light-2: #f8f9f8e6;
+  /* 首屏轮播的左右压暗强度（v2 index.html hero，明暗联动按帧覆盖） */
+  --shade: 0.16;
+  --edge: 0.67;
+
+  /* 首页 v2 五段用到的遮罩与玻璃底。透明度那几个数是按帧明暗联动的观感
+     调参，留在 `HomeView.vue` 里，本处只收颜色。 */
+  --hero-veil-rgb: 6 12 16;  /* 首屏遮罩底色分量（v2 rgba(6,12,16,…) 的前三格） */
+  --hero-text-shadow: 0 1px 4px #15201c, 0 2px 14px #15201c99; /* 压在首屏图上的文字投影 */
+  --card-body-glass: #132a24e6; /* 团卡下半截的墨绿玻璃底（v2 .game-card .body） */
+  --cap-scrim-1: #10222599;     /* 图卡底部文字渐变（v2 .pic-card .cap 38% 处） */
+  --cap-scrim-2: #102225f2;     /* 图卡底部文字渐变终点 */
+  --overlay-scrim-1: #102620a6; /* 全屏覆盖层遮罩（v2 .rule-page::after） */
+  --overlay-scrim-2: #102620e0;
+
+  /* ========================================================================
+     字体：统一无衬线字体栈
+     不加载任何 web font 的理由不变：国内网络 + 微信内置浏览器，中文字体文件过大。
+     ====================================================================== */
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+    Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", monospace;
+
+  /* 字距：标题负字距、眼标大正字距（v2 的反转点） */
+  --ls-display: -0.035em;    /* .h-display（v2 -.035em） */
+  --ls-section: -0.03em;     /* .h-section（v2 -.03em） */
+  --ls-kicker: 0.19em;       /* .kicker（v2 .19em） */
+  --ls-wide: 0.1em;          /* 标签、tabs、status（v2 .1em） */
+  --ls-mid: 0.06em;          /* 导航项、按钮（v2 .04–.08em 取中） */
+  --ls-caps: 0.08em;         /* pill / 小写标签（v2 .08em） */
+  --ls-caps-sm: 0.04em;      /* 次级小标签、meta（v2 .04em） */
+  --ls-base: 0.01em;         /* 正文（v2 body letter-spacing） */
+
+  /* ========================================================================
+     字号档（v2 无字号令牌，此处按其实际用值建档）
+     ====================================================================== */
+  --fs-2xs: 10px;            /* kicker / tag / status / 页脚（v2 10px） */
+  --fs-xs: 11px;             /* .small、chip、字段 label、hint、顶栏项（v2 11px） */
+  --fs-sm: 12px;             /* 按钮、tabs、.who、面包屑（v2 12px） */
+  --fs-md: 13px;             /* .lead 导语（v2 13px） */
+  --fs-base: 14px;           /* 正文（v2 body 14px） */
+  --fs-lg: 16px;             /* 长文正文：战报正文 / Markdown 预览（v2 16px） */
+  --fs-xl: 18px;             /* .h-card 卡片标题（v2 18px） */
+  --fs-2xl: 20px;            /* 图卡大标题（v2 .pic-card .cap h3 20px） */
+  --fs-h-section: clamp(22px, 2.6vw, 30px); /* .h-section（v2 同值） */
+  --fs-h-display: clamp(25px, 3.4vw, 38px); /* .h-display（v2 同值） */
+  /* 超大区块标题（静态设计重构初版：招募列表页头，仿 stripe.dev「Featured」区）。
+     中文大字配 300 字重，Windows 雅黑 Light / macOS 苹方 Light 都有对应字形 */
+  --fs-h-mega: clamp(44px, 7.2vw, 112px);
+  --ls-mega: -0.01em;        /* 中文大字只收一点点，不照搬西文的深负字距 */
+
+  /* 行高 */
+  --lh-tight: 1.4;           /* 标题（v2 h-display / h-section 1.4） */
+  --lh-card: 1.5;            /* 卡片标题（v2 .h-card 1.5） */
+  --lh-body: 1.7;            /* 正文（v2 body 1.7） */
+  --lh-read: 1.95;           /* 导语与长说明（v2 .lead 1.95） */
+
+  /* ========================================================================
+     间距档（4 的倍数，沿用旧刻度以免现有页面错位；v2 无间距令牌，其写死值就近取档）
+     ====================================================================== */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 80px;              /* 分区纵向大留白（v2 .section 78px 取档） */
+
+  /* 分区纵向节奏（v2 .section 桌面 78px / 手机 55px；.section.tight 54px） */
+  --sec-y: 56px;
+  --sec-y-lg: 78px;
+  --sec-y-tight: 54px;
+
+  /* ========================================================================
+     形状：圆角三档（v2 --radius 6 / --radius-lg 12 / 胶囊 999）
+     v2 页内另有 4px×20、3px×6、2px×2，一律并入 --radius。
+     ====================================================================== */
+  --radius: 6px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* ========================================================================
+     阴影：弥散柔光两档
+     ====================================================================== */
+  --shadow-1: 0 16px 40px #0b1a1633;  /* 卡片浮起、下拉（v2 #0b1a1633 / #1026212e 合并） */
+  --shadow-2: 0 30px 90px #08130f5c;  /* 模态、全屏覆盖层（v2 #08130f5c / #0008 合并） */
+
+  /* ========================================================================
+     动效
+     ====================================================================== */
+  --dur: 180ms;
+  --dur-slow: 400ms;                              /* 遮罩明暗联动（v2 .4s） */
+  --dur-slide: 650ms;                             /* 首屏轮播位移（v2 index.html .65s） */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-slide: cubic-bezier(0.22, 0.65, 0.2, 1); /* 轮播位移（v2 index.html .65s） */
+  /* 顶栏胶囊按钮与菜单卡片 */
+  --dur-roll: 300ms;                              /* 文字上移替换、图标滑入、文字让位 */
+  --dur-card: 500ms;                              /* 菜单卡片飞入摆正 */
+  --stagger: 20ms;                                /* 卡片依次入场的间隔 */
+  --ease-roll: cubic-bezier(0.4, 0, 0.1, 1);
+
+  /* ========================================================================
+     版心与留白
+
+     1920→2560 留白线性增至 740px（版心 1080）；更宽的屏版心固定 1080。
+     手机（<768px）用固定 20px，与 v2 `.section { padding: 55px 20px }` 一致。
+     ====================================================================== */
+  --gutter: 6%;
+  --max: 1440px;
+  --max-narrow: 800px;       /* 长文单栏净宽（战报，v2 report.html） */
+  --pad: 20px;
+
+  /* ========================================================================
+     导航高度与安全区
+     ====================================================================== */
+  --header-h: 54px;          /* 顶栏（v2 --header-h） */
+  --bottom-nav-h: 56px;      /* 手机底部导航 */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* ========================================================================
+     液态玻璃（顶栏 / 手机底栏）
+
+     **每个玻璃面都必须配一个不透明兜底底色**（`--glass-*-solid`）：
+     `backdrop-filter` 在微信内置浏览器 X5 / 老 Safari 上的降级未测，
+     它只能是锦上添花，不能是可读性的唯一依靠。
+     ====================================================================== */
+  --glass-dark-1: #c4cce52b;     /* 深色玻璃渐变起点（v2 .site-header） */
+  --glass-dark-2: #23304770;     /* 深色玻璃渐变终点 */
+  --glass-dark-solid: #2b3a4e;   /* 深色玻璃的不透明兜底（无 backdrop-filter 时） */
+  --glass-light-1: #ffffffd9;    /* 浅色玻璃渐变起点（v2 .site-header.on-light） */
+  --glass-light-2: #ffffffb3;    /* 浅色玻璃渐变终点 */
+  --glass-light-solid: #f4f7f4;  /* 浅色玻璃的不透明兜底 */
+  --glass-blur: blur(18px) saturate(145%);
+  --glass-shadow-dark: inset 0 1px #ffffff70, 0 4px 22px #10162920;
+  --glass-shadow-light: inset 0 1px 1px #fff, 0 3px 14px #102c2312;
+  --text-shadow-dark: 0 1px 4px #151c3e88; /* 压在深色玻璃/图上的字（v2 .site-header） */
+  --avatar-bg: #b9c8bf;          /* 头像占位底（v2 .avatar） */
+
+  /* ========================================================================
+     断点约定（写在这里只为留档；CSS 自定义属性**不能**用在 @media 条件里，
+     媒体查询必须写字面值，且一律 min-width —— 移动优先）
+       768px  —— 手机 → 平板/桌面（底部导航隐藏、版心切到 --pad）
+       1200px —— 桌面加宽（多栏、横轨）
+       1921px —— 宽屏留白起算点（横轨改 4 张一屏）
+       2251px —— 超宽屏（横轨改 3 张一屏，版心趋近 1080）
+     ====================================================================== */
+  --bp-md: 768px;
+  --bp-lg: 1200px;
+  --bp-wide: 1921px;
+  --bp-ultra: 2251px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --pad: max(
+      var(--gutter),
+      calc((100% - var(--max)) / 2),
+      min(calc(0.79 * 100% - 1277px), calc((100% - 1080px) / 2))
+    );
+  }
+}

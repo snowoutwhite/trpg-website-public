@@ -1,0 +1,58 @@
+# 秘钥与本地配置
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials*.json
+# compose 部署用的 Django 环境文件（模板仍是 backend/.env.example）
+deploy/*.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+db.sqlite3
+media/
+.pytest-media/
+staticfiles/
+
+# Node / Vue
+node_modules/
+dist/
+.vite/
+
+# 系统与编辑器
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Private local records and release artifacts
+user_transcript/
+*.jsonl
+.release/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.sql
+*.dump
+*.log
+*.p12
+*.pfx
+*.keystore
+credentials*
+
+# e2e 运行产物（脚本与报告入 git，日志/截图/依赖不入）
+e2e/node_modules/
+e2e/.venv/
+e2e/__pycache__/
+e2e/*.log
+e2e/shots/
+e2e/*_results.json
+e2e/*.sqlite3

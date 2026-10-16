@@ -1,0 +1,25 @@
+# TLS 终结层（Caddy）：对外听 80/443，自动签发/续期证书，再把请求转给同 compose 网络里的 nginx:80。
+#
+# 站点地址来自 compose 的 SITE_DOMAIN（项目根目录 .env，见根目录 .env.example）：
+#   - 生产：填真实域名（DNS A/AAAA 记录须已指向本机，且 80/443 从公网可达），
+#     Caddy 会向 Let's Encrypt 自动申请证书，并把 http 自动 301 到 https。
+#   - 本机部署测试：填 127.0.0.1（默认值），Caddy 用内置本地 CA 自签，浏览器会提示证书不受信任，
+#     点「继续访问」即可；用 IP 而不用 localhost 是为了不让 HSTS 头污染本机的 localhost:5173 开发环境
+#     （浏览器不对 IP 地址记 HSTS）。
+#
+# 不在这里做 gzip：反代回来的响应带会话 Cookie / CSRF token，压缩会引入 BREACH 类侧信道；
+# 静态资源的 gzip 由后面的 nginx 负责（见 nginx.conf）。
+#
+# X-Forwarded-*：Caddy 默认会**丢弃**不可信客户端自带的 X-Forwarded-For / X-Forwarded-Proto，
+# 换成自己观测到的真实值再转发；后面的 nginx 再往 X-Forwarded-For 追加一跳，
+# 所以 Django 侧 DRF_NUM_PROXIES / ALLAUTH_TRUSTED_PROXY_COUNT 都是 2（见 backend/.env.example）。
+{
+	# 客户端不带 SNI 时（用 IP 访问：浏览器与 curl 对 IP 地址都不发 SNI）也能选到本站证书。
+	# 没有这一行，本机 https://127.0.0.1:8443 会在 TLS 握手阶段直接被 Caddy 以 internal error 拒绝。
+	# 生产填域名时这行同样无害：只影响不发 SNI 的扫描器拿到哪张证书。
+	default_sni {$SITE_DOMAIN:127.0.0.1}
+}
+
+{$SITE_DOMAIN:127.0.0.1} {
+	reverse_proxy nginx:80
+}

@@ -1,0 +1,14 @@
+# 反代给 Django 的公共头。SECURE_PROXY_SSL_HEADER 依赖 X-Forwarded-Proto。
+# X-Forwarded-Proto 不能写 $scheme：本容器只听 80，TLS 由前面的 Caddy 终结，$scheme 永远是 http，
+# Django 会以为全站都是明文而无限 301 到 https。改用 nginx.conf 里的 map $trpg_forwarded_proto：
+# 前面一跳说是 https 就沿用，否则才取 $scheme。本容器不对外发布端口，这个头只可能来自 Caddy。
+proxy_http_version 1.1;
+# $http_host 而不是 $host：$host 会丢掉端口，Django 用它拼绝对地址（邮件里的验证链接、接口里的头像 URL），
+# 非标准端口（本机 8443）下会拼错；生产 443 两者等价。
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $trpg_forwarded_proto;
+proxy_set_header Connection "";
+proxy_redirect off;
+proxy_read_timeout 60s;

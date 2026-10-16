@@ -1,0 +1,44 @@
+[project]
+name = "trpg-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2,<5.3",
+    "django-allauth[headless]>=65.19.4",
+    "django-environ>=0.14.0",
+    "djangorestframework>=3.18.1",
+    "gunicorn>=26.2.0",
+    "mammoth>=1.12.2",
+    "markdownify>=1.2.3",
+    "pillow>=12.3.0",
+    "psycopg[binary]>=3.3.6",
+    "redis>=8.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-django>=4.14.0",
+    "python-docx>=1.2.0",
+    "ruff>=0.16.8",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "tests.py"]
+testpaths = ["apps", "common"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+exclude = [".venv", "**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "common", "config"]
