@@ -2,15 +2,65 @@
 
 [中文](README.md) · [English](docs/readme/en.md) · [Español](docs/readme/es.md) · [Italiano](docs/readme/it.md) · [Deutsch](docs/readme/de.md) · [Français](docs/readme/fr.md)
 
-面向桌面角色扮演社群的自托管网站。组织者可以发布团务，玩家报名、提交角色卡，并在结团后参与匿名互评。
+面向桌面角色扮演（TRPG）社群的自托管网站，将招募、报名、角色卡、结团后的评价与活动记录放在同一套系统中。适合由站主管理、GM 组织活动、玩家持续参与的社群。
 
-邮箱注册与验证、玩家及 GM 资料卡、招募与报名管理、角色卡池、团后评价与赞级别、活动相册、战报、资源下载、新人指南、术语表、站点公告及首页编辑。
+> 六种语言提供的是项目文档；当前应用界面主要为中文。
 
-> 本导航切换的是项目文档语言。当前应用界面主要为中文，不代表已提供六语言界面。
+## 主要功能
 
-Python 3.12、Django 5.2、Django REST Framework、django-allauth；Vue 3、TypeScript、Vite；生产环境使用 PostgreSQL 与 Redis。Docker Compose 包含 Caddy、Nginx、Gunicorn 和定时任务服务。
+| 模块 | 功能 |
+| --- | --- |
+| 账号与个人资料 | 邮箱注册、验证与密码重置；玩家卡和 GM 卡分别记录个人介绍、偏好、参团或主持经历。 |
+| 招募与团务 | 发布线上或线下活动，设置规则、时间、人数和报名门槛；支持先到先得或候选玩家池审核，以及交卡、审批、退出和结团。 |
+| 角色卡 | 上传具体人物的角色卡文件，设置公开或私密，记录使用情况；公开卡池支持浏览及登录后下载。 |
+| 团后评价 | 同团成员匿名互评，赞与倒赞需附文字；未评价按规则计入统计，GM 与玩家侧分开计算赞级别，并有延迟展示与可见性限制。 |
+| 活动记录 | 团相册、照片审核与举报；Markdown 战报、附件、发布审核，以及 DOCX/TXT 导入正文。 |
+| 资源与知识 | 文章、文件和链接资源；新人指南、术语表及 FAQ；资源下载与管理权限分开控制。 |
+| 通知与管理 | 站内通知、可选邮件通知、站点公告；站主可在首页直接改字换图，并通过管理后台维护内容、成员和站级设置。 |
 
-安装 uv、Python 3.12、Node.js 22.13+（22.x）及 npm。容器部署另需 Docker 与 Compose。
+典型流程：注册并完善资料 → 浏览招募并报名 → 提交角色卡并由 GM 审核 → 确认到场与结团 → 团后评价、相册与战报。
+
+## 技术栈
+
+| 模块 | 功能 |
+| --- | --- |
+| 后端 | Python 3.12、Django 5.2、Django REST Framework、django-allauth headless（邮箱登录、会话认证） |
+| 前端 | Vue 3、TypeScript、Vite、Pinia、Vue Router |
+| 内容处理 | marked 与 DOMPurify 渲染 Markdown；Mammoth 与 markdownify 导入文档；Pillow 处理图片 |
+| 数据与缓存 | 生产使用 PostgreSQL 和 Redis；本地开发默认 SQLite |
+| 部署 | Docker Compose：Caddy → Nginx → Gunicorn/Django，另含 PostgreSQL、Redis 与定时任务容器 |
+
+## 项目结构
+
+```text
+.
+├── backend/
+│   ├── apps/
+│   ├── common/
+│   ├── config/
+│   ├── manage.py
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── stores/
+│   │   ├── styles/
+│   │   └── views/
+│   ├── public/
+│   └── package.json
+├── deploy/
+├── docs/
+│   ├── dev/deploy.md
+│   └── readme/
+└── docker-compose.yml
+```
+
+后端按业务域拆分：`accounts` / `profiles`（账号与资料）、`games`（团务）、`reviews`（评价）、`gallery` / `reports`（相册与战报）、`charactercards` / `resources` / `content`（角色卡、资源与知识）、`notifications` / `homecontent` / `siteconfig`（通知与站点配置）。`points` 提供积分记录基础，不代表已有完整的等级、称号或兑换界面。
+
+## 环境要求
+
+本地开发需要 uv、Python 3.12、Node.js 22.13+（22.x）与 npm；容器部署另需 Docker Engine、Compose 和 Buildx。生产部署需准备域名和 SMTP 发信服务。
 
 ## 本地启动
 

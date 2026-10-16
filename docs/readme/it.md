@@ -2,15 +2,65 @@
 
 [中文](../../README.md) · [English](en.md) · [Español](es.md) · [Italiano](it.md) · [Deutsch](de.md) · [Français](fr.md)
 
-Un sito autogestito per comunità di giochi di ruolo da tavolo. Gli organizzatori pubblicano sessioni; i giocatori si iscrivono, inviano schede e scambiano valutazioni anonime dopo le partite.
+Un sito autogestito per comunità di giochi di ruolo da tavolo (TRPG). Riunisce reclutamento, iscrizioni, schede, valutazioni e resoconti, con ruoli distinti per amministratore, GM e giocatori.
 
-Registrazione e verifica via email, profili di giocatori e GM, reclutamento e iscrizioni, schede dei personaggi, valutazioni e livelli di reputazione, gallerie, resoconti, risorse, guide introduttive, glossario, annunci e modifica della pagina iniziale.
+> Le sei lingue riguardano la documentazione. L’interfaccia applicativa è prevalentemente in cinese.
 
-> I collegamenti cambiano la lingua della documentazione. L'interfaccia dell'applicazione è principalmente in cinese; queste traduzioni non forniscono un'interfaccia in sei lingue.
+## Funzionalità
 
-Python 3.12, Django 5.2, Django REST Framework, django-allauth; Vue 3, TypeScript, Vite; PostgreSQL e Redis in produzione. Docker Compose include Caddy, Nginx, Gunicorn e attività pianificate.
+| Modulo | Funzioni |
+| --- | --- |
+| Account e profili | Registrazione, verifica e recupero via email; profili separati per giocatori e GM con presentazione, preferenze e statistiche. |
+| Gestione delle sessioni | Sessioni online o dal vivo, regole, orari, posti e requisiti; iscrizioni in ordine di arrivo o selezione manuale, consegna schede, approvazione, ritiro e chiusura. |
+| Schede personaggio | File pubblici o privati e cronologia di utilizzo; consultazione delle schede pubbliche e download dopo accesso. |
+| Valutazioni | Valutazioni anonime con testo obbligatorio per voti positivi e negativi; le mancate valutazioni entrano nel calcolo secondo le regole. Fasce separate per giocatori e GM, pubblicazione differita e visibilità controllata. |
+| Registri delle attività | Album per sessione, moderazione e segnalazioni; resoconti Markdown con allegati, revisione e importazione del testo da DOCX/TXT. |
+| Risorse e guide | Articoli, file, collegamenti, guide iniziali, glossario e FAQ, con permessi distinti di download e gestione. |
+| Notifiche e amministrazione | Notifiche interne ed email opzionali, annunci, modifica di testi e immagini della home e pannello amministrativo. |
 
-Installa uv, Python 3.12, Node.js 22.13+ (22.x) e npm. Per i container servono anche Docker e Compose.
+Flusso tipico: registrazione e profilo → ricerca e iscrizione → scheda e approvazione → conferma presenze e chiusura → valutazioni, foto e resoconti.
+
+## Tecnologie
+
+| Modulo | Funzioni |
+| --- | --- |
+| Backend | Python 3.12, Django 5.2, Django REST Framework, django-allauth headless; email e sessioni |
+| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router |
+| Contenuti | marked e DOMPurify; Mammoth e markdownify; Pillow |
+| Dati e cache | PostgreSQL e Redis in produzione; SQLite locale predefinito |
+| Distribuzione | Docker Compose: Caddy → Nginx → Gunicorn/Django, PostgreSQL, Redis e scheduler |
+
+## Struttura del progetto
+
+```text
+.
+├── backend/
+│   ├── apps/
+│   ├── common/
+│   ├── config/
+│   ├── manage.py
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── stores/
+│   │   ├── styles/
+│   │   └── views/
+│   ├── public/
+│   └── package.json
+├── deploy/
+├── docs/
+│   ├── dev/deploy.md
+│   └── readme/
+└── docker-compose.yml
+```
+
+Domini: `accounts` / `profiles` (account), `games` (sessioni), `reviews` (valutazioni), `gallery` / `reports` (attività), `charactercards` / `resources` / `content` (contenuti), `notifications` / `homecontent` / `siteconfig` (notifiche e impostazioni). `points` offre un registro dei punti, non una completa interfaccia di livelli, titoli o riscatti.
+
+## Requisiti
+
+Sviluppo: uv, Python 3.12, Node.js 22.13+ (22.x) e npm. Container: Docker Engine, Compose e Buildx. Produzione: dominio e servizio SMTP.
 
 ## Sviluppo locale
 

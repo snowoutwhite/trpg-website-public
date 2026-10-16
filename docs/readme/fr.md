@@ -2,15 +2,65 @@
 
 [中文](../../README.md) · [English](en.md) · [Español](es.md) · [Italiano](it.md) · [Deutsch](de.md) · [Français](fr.md)
 
-Un site auto-hébergé pour les communautés de jeux de rôle sur table. Les organisateurs publient des parties ; les joueurs s'inscrivent, déposent leurs fiches et échangent des évaluations anonymes après les parties.
+Un site auto-hébergé pour les communautés de jeux de rôle sur table (TRPG). Il rassemble recrutement, inscriptions, fiches, évaluations et comptes rendus, avec des rôles distincts pour l’administration, les MJ et les joueurs.
 
-Inscription et vérification par courriel, profils de joueurs et de MJ, recrutement et inscriptions, fiches de personnages, évaluations et niveaux de réputation, galeries, comptes rendus, ressources, guides pour débutants, glossaire, annonces et modification de la page d'accueil.
+> Les six langues concernent la documentation. L’application est principalement en chinois.
 
-> Les liens changent la langue de la documentation. L'interface de l'application est actuellement principalement en chinois ; ces traductions ne constituent pas une interface en six langues.
+## Fonctionnalités
 
-Python 3.12, Django 5.2, Django REST Framework, django-allauth ; Vue 3, TypeScript, Vite ; PostgreSQL et Redis en production. Docker Compose comprend Caddy, Nginx, Gunicorn et des tâches planifiées.
+| Module | Fonctions |
+| --- | --- |
+| Comptes et profils | Inscription, vérification et récupération par courriel ; profils séparés de joueur et de MJ, présentations, préférences et statistiques. |
+| Gestion des parties | Parties en ligne ou en présentiel, règles, horaires, places et critères ; inscription par ordre d’arrivée ou sélection manuelle, dépôt de fiche, validation, retrait et clôture. |
+| Fiches de personnages | Fichiers publics ou privés et historique d’utilisation ; consultation des fiches publiques et téléchargement après connexion. |
+| Évaluations | Évaluations anonymes avec texte obligatoire pour les avis positifs et négatifs ; les absences d’avis entrent dans le calcul selon les règles. Niveaux distincts joueur/MJ, affichage différé et contrôles de visibilité. |
+| Archives des activités | Albums par partie, modération et signalements ; comptes rendus Markdown avec pièces jointes, validation et import du texte DOCX/TXT. |
+| Ressources et guides | Articles, fichiers, liens, guides débutants, glossaire et FAQ, avec permissions distinctes de téléchargement et de gestion. |
+| Notifications et administration | Notifications internes et courriels facultatifs, annonces, édition des textes et images d’accueil et interface d’administration. |
 
-Installez uv, Python 3.12, Node.js 22.13+ (22.x) et npm. Le déploiement par conteneurs nécessite aussi Docker et Compose.
+Parcours : inscription et profil → recherche et inscription à une partie → fiche et validation → présence et clôture → évaluations, photos et comptes rendus.
+
+## Technologies
+
+| Module | Fonctions |
+| --- | --- |
+| Backend | Python 3.12, Django 5.2, Django REST Framework, django-allauth headless ; courriel et sessions |
+| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router |
+| Contenu | marked et DOMPurify ; Mammoth et markdownify ; Pillow |
+| Données et cache | PostgreSQL et Redis en production ; SQLite local par défaut |
+| Déploiement | Docker Compose : Caddy → Nginx → Gunicorn/Django, PostgreSQL, Redis et ordonnanceur |
+
+## Structure du projet
+
+```text
+.
+├── backend/
+│   ├── apps/
+│   ├── common/
+│   ├── config/
+│   ├── manage.py
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── stores/
+│   │   ├── styles/
+│   │   └── views/
+│   ├── public/
+│   └── package.json
+├── deploy/
+├── docs/
+│   ├── dev/deploy.md
+│   └── readme/
+└── docker-compose.yml
+```
+
+Domaines : `accounts` / `profiles` (comptes), `games` (parties), `reviews` (évaluations), `gallery` / `reports` (activités), `charactercards` / `resources` / `content` (contenu), `notifications` / `homecontent` / `siteconfig` (notifications et réglages). `points` fournit un registre de points, sans interface complète de niveaux, titres ou échange.
+
+## Prérequis
+
+Développement : uv, Python 3.12, Node.js 22.13+ (22.x) et npm. Conteneurs : Docker Engine, Compose et Buildx. Production : domaine et service SMTP.
 
 ## Développement local
 

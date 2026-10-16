@@ -2,15 +2,65 @@
 
 [中文](../../README.md) · [English](en.md) · [Español](es.md) · [Italiano](it.md) · [Deutsch](de.md) · [Français](fr.md)
 
-Un sitio autohospedado para comunidades de juegos de rol de mesa. Los organizadores publican partidas; los jugadores se inscriben, envían fichas y realizan valoraciones anónimas después de jugar.
+Un sitio autohospedado para comunidades de juegos de rol de mesa (TRPG). Reúne convocatorias, inscripciones, fichas, valoraciones y registros de partidas, con funciones diferenciadas para la administración, la dirección de juego y los jugadores.
 
-Registro y verificación por correo, perfiles de jugadores y directores, convocatorias e inscripciones, fichas de personaje, valoraciones y niveles de reputación, álbumes, crónicas, recursos, guías para principiantes, glosario, anuncios y edición de la portada.
+> Los seis idiomas corresponden a la documentación. La aplicación está principalmente en chino.
 
-> Los enlaces cambian el idioma de la documentación. La interfaz de la aplicación está principalmente en chino; estas traducciones no ofrecen una interfaz en seis idiomas.
+## Funciones principales
 
-Python 3.12, Django 5.2, Django REST Framework, django-allauth; Vue 3, TypeScript, Vite; PostgreSQL y Redis en producción. Docker Compose incluye Caddy, Nginx, Gunicorn y tareas programadas.
+| Módulo | Funciones |
+| --- | --- |
+| Cuentas y perfiles | Registro, verificación y recuperación por correo; perfiles separados de jugador y director con presentación, preferencias y estadísticas. |
+| Gestión de partidas | Partidas presenciales o en línea, reglas, horarios, aforo y requisitos; inscripción por orden de llegada o selección manual, entrega de fichas, aprobación, retirada y cierre. |
+| Fichas de personaje | Archivos públicos o privados e historial de uso; consulta de fichas públicas y descarga tras iniciar sesión. |
+| Valoraciones | Valoraciones anónimas con texto obligatorio para votos positivos y negativos; las no enviadas entran en el cálculo según las reglas. Niveles separados de jugador y director, publicación diferida y controles de visibilidad. |
+| Registros de actividad | Álbumes por partida, moderación y denuncias; crónicas Markdown con adjuntos, revisión e importación del texto desde DOCX/TXT. |
+| Recursos y guías | Artículos, archivos, enlaces, guías iniciales, glosario y FAQ; permisos diferenciados de descarga y gestión. |
+| Avisos y administración | Notificaciones internas y correo opcional, anuncios, edición de textos e imágenes de portada y panel de administración. |
 
-Instala uv, Python 3.12, Node.js 22.13+ (22.x) y npm. El despliegue con contenedores requiere Docker y Compose.
+Flujo habitual: registro y perfil → buscar e inscribirse → entregar ficha para aprobación → confirmar asistencia y cerrar → valoraciones, fotos y crónicas.
+
+## Tecnologías
+
+| Módulo | Funciones |
+| --- | --- |
+| Backend | Python 3.12, Django 5.2, Django REST Framework, django-allauth headless; correo y sesiones |
+| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router |
+| Contenido | marked y DOMPurify; Mammoth y markdownify; Pillow |
+| Datos y caché | PostgreSQL y Redis en producción; SQLite local por defecto |
+| Despliegue | Docker Compose: Caddy → Nginx → Gunicorn/Django, PostgreSQL, Redis y planificador |
+
+## Estructura del proyecto
+
+```text
+.
+├── backend/
+│   ├── apps/
+│   ├── common/
+│   ├── config/
+│   ├── manage.py
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── stores/
+│   │   ├── styles/
+│   │   └── views/
+│   ├── public/
+│   └── package.json
+├── deploy/
+├── docs/
+│   ├── dev/deploy.md
+│   └── readme/
+└── docker-compose.yml
+```
+
+Dominios: `accounts` / `profiles` (cuentas y perfiles), `games` (partidas), `reviews` (valoraciones), `gallery` / `reports` (registros), `charactercards` / `resources` / `content` (contenido), `notifications` / `homecontent` / `siteconfig` (avisos y configuración). `points` aporta un registro de puntos, no una interfaz completa de niveles, títulos o canjes.
+
+## Requisitos
+
+Desarrollo: uv, Python 3.12, Node.js 22.13+ (22.x) y npm. Contenedores: Docker Engine, Compose y Buildx. Producción: dominio y servicio SMTP.
 
 ## Desarrollo local
 

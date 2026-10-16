@@ -2,15 +2,65 @@
 
 [中文](../../README.md) · [English](en.md) · [Español](es.md) · [Italiano](it.md) · [Deutsch](de.md) · [Français](fr.md)
 
-Eine selbst gehostete Website für Pen-&-Paper-Rollenspielgruppen. Spielleitungen veröffentlichen Spielrunden; Spieler melden sich an, reichen Charakterbögen ein und geben nach dem Spiel anonyme Bewertungen ab.
+Eine selbst gehostete Website für Pen-&-Paper-Rollenspielgemeinschaften (TRPG). Sie verbindet Ausschreibungen, Anmeldungen, Charakterbögen, Bewertungen und Spielberichte mit getrennten Rollen für Administration, Spielleitung und Spieler.
 
-E-Mail-Registrierung und -Bestätigung, Spieler- und Spielleitungsprofile, Ausschreibungen und Anmeldungen, Charakterbögen, Bewertungen und Reputationsstufen, Fotogalerien, Spielberichte, Ressourcen, Einsteigerhilfen, Glossar, Ankündigungen und Bearbeitung der Startseite.
+> Die sechs Sprachen betreffen die Dokumentation. Die Anwendung ist überwiegend auf Chinesisch.
 
-> Die Links wechseln die Sprache der Dokumentation. Die Anwendung ist derzeit überwiegend auf Chinesisch; diese Übersetzungen ergeben keine sechssprachige Benutzeroberfläche.
+## Funktionen
 
-Python 3.12, Django 5.2, Django REST Framework, django-allauth; Vue 3, TypeScript, Vite; PostgreSQL und Redis im Produktivbetrieb. Docker Compose umfasst Caddy, Nginx, Gunicorn und geplante Aufgaben.
+| Modul | Funktionen |
+| --- | --- |
+| Konten und Profile | Registrierung, Bestätigung und Passwortwiederherstellung per E-Mail; getrennte Spieler- und Spielleitungsprofile mit Vorstellung, Vorlieben und Statistiken. |
+| Spielverwaltung | Online- und Präsenzrunden mit Regeln, Terminen, Plätzen und Anforderungen; Anmeldung nach Eingangsreihenfolge oder manueller Auswahl, Charakterabgabe, Freigabe, Rücktritt und Abschluss. |
+| Charakterbögen | Öffentliche oder private Dateien mit Nutzungshistorie; öffentliche Bögen ansehen und nach Anmeldung herunterladen. |
+| Bewertungen | Anonyme Bewertungen mit Pflichttext bei positiven und negativen Stimmen; fehlende Bewertungen fließen gemäß den Regeln ein. Getrennte Stufen für Spieler und Spielleitung, verzögerte Anzeige und Sichtbarkeitsregeln. |
+| Aktivitätsberichte | Fotoalben je Runde, Moderation und Meldungen; Markdown-Spielberichte mit Anhängen, Freigabe und Textimport aus DOCX/TXT. |
+| Ressourcen und Anleitungen | Artikel, Dateien, Links, Einsteigerhilfen, Glossar und FAQ mit getrennten Download- und Verwaltungsrechten. |
+| Benachrichtigungen und Verwaltung | Interne und optionale E-Mail-Mitteilungen, Ankündigungen, Bearbeitung von Startseitentexten und Bildern sowie Verwaltungsoberfläche. |
 
-Benötigt werden uv, Python 3.12, Node.js 22.13+ (22.x) und npm. Für Container werden außerdem Docker und Compose benötigt.
+Ablauf: registrieren und Profil ergänzen → Runde finden und anmelden → Charakterbogen einreichen → Anwesenheit bestätigen und abschließen → Bewertungen, Fotos und Berichte.
+
+## Technologien
+
+| Modul | Funktionen |
+| --- | --- |
+| Backend | Python 3.12, Django 5.2, Django REST Framework, django-allauth headless; E-Mail und Sitzungen |
+| Frontend | Vue 3, TypeScript, Vite, Pinia, Vue Router |
+| Inhalte | marked und DOMPurify; Mammoth und markdownify; Pillow |
+| Daten und Cache | PostgreSQL und Redis im Produktivbetrieb; lokal standardmäßig SQLite |
+| Bereitstellung | Docker Compose: Caddy → Nginx → Gunicorn/Django, PostgreSQL, Redis und Scheduler |
+
+## Projektstruktur
+
+```text
+.
+├── backend/
+│   ├── apps/
+│   ├── common/
+│   ├── config/
+│   ├── manage.py
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── stores/
+│   │   ├── styles/
+│   │   └── views/
+│   ├── public/
+│   └── package.json
+├── deploy/
+├── docs/
+│   ├── dev/deploy.md
+│   └── readme/
+└── docker-compose.yml
+```
+
+Domänen: `accounts` / `profiles` (Konten), `games` (Runden), `reviews` (Bewertungen), `gallery` / `reports` (Aktivitäten), `charactercards` / `resources` / `content` (Inhalte), `notifications` / `homecontent` / `siteconfig` (Mitteilungen und Einstellungen). `points` stellt ein Punktekonto bereit, keine vollständige Oberfläche für Level, Titel oder Einlösungen.
+
+## Voraussetzungen
+
+Entwicklung: uv, Python 3.12, Node.js 22.13+ (22.x) und npm. Container: Docker Engine, Compose und Buildx. Produktion: Domain und SMTP-Dienst.
 
 ## Lokale Entwicklung
 
